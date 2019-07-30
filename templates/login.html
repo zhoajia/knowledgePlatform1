@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登陆</title>
+</head>
+<body>
+    <div>
+        <form method="post" action="/login">
+            {% csrf_token %}
+            <input type="text" name="user_name" value=""/>
+            <input type="text" name="password" value=""/>
+            <input type="submit" value="登陆">
+        </form>
+    </div>
+    <div>
+        <p>{{errorMsg}}</p>
+    </div>
+</body>
+</html>
