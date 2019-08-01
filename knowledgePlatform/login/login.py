@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib import auth
 
+
 def go_login(request):
     return render(request, 'login.html')
 
@@ -9,19 +10,21 @@ def go_login(request):
 def do_login(request):
     request.encoding = 'utf-8'
     if 'user_name' in request.POST:
+        print(request.POST['password'])
         try:
-            if request.user.is_authenticated():  # 是否已登录
+            if request.user.is_authenticated:  # 是否已登录
                 return render(request, 'index.html')
             else:
                 user = auth.authenticate(username=request.POST['user_name'], password=request.POST['password'])
                 if user is not None:
+                    auth.login(request,user)
                     return render(request, 'index.html')
                 else:
-                    context = {}
+                    context = dict()
                     context['errorMsg'] = '用户名或者密码错误'
-                    return render(request, 'login.html',context)
+                    return render(request, 'login.html', context)
         except Exception as e:
             print(e.__str__())
-            context = {}
+            context = dict()
             context['errorMsg'] = '系统异常'
             return render(request, 'login.html', context)
