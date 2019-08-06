@@ -8,10 +8,10 @@ from django.shortcuts import HttpResponse
 class LoginFilter(MiddlewareMixin):
 
     def process_request(self, request):
-        if request.path == '/' or request.path == '/login' or request.path.startswith('/admin'):
+        if request.path == '/' or request.path == '/login' or request.path == '/go_register' or request.path.startswith == '/register' or request.path.startswith('/admin'):
             return
         if request.user.is_authenticated:  # 是否已登录
-            print("一登录")
+            print("已登录")
             return
         else:
             print("未登录")
