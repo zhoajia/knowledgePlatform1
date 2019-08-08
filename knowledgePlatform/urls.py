@@ -28,10 +28,15 @@ from .login import login
 from .Index import index
 from django.contrib import admin
 
+knowledge_patterns = [
+    path('go_register', login.go_register),  # 跳转注册页
+]
+
 urlpatterns = [
     path('', index.go_index),  # 登陆接口
     path('admin', admin.site.urls),  # 管理后台root/87908502
-    path('login', login.do_login),#登陆接口
-    path('register', login.register),#注册接口
-    path('go_register', login.go_register),#跳转注册页
+    path('login', login.do_login),  # 登陆接口
+    path('register', login.register),  # 注册接口
+    path('go_register', login.go_register),  # 跳转注册页
+    path('credit/', include(knowledge_patterns)),
 ]

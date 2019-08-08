@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '=wn=8!3*1c3l@_#z#aaf80a3%&-0!f^k$gywf+45_)5hryd*-k'
+SECRET_KEY = '=wn=8!3*1c3l@_#z#aaf80a3%&-0!f^k$gywf+45_)5hryd*-k' #项目安全码
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -51,7 +51,7 @@ MIDDLEWARE = [
     'knowledgePlatform.middleware.loginFilter.LoginFilter',
 ]
 
-ROOT_URLCONF = 'knowledgePlatform.urls'
+ROOT_URLCONF = 'knowledgePlatform.urls'  # url配置的根路径
 
 TEMPLATES = [
     {
