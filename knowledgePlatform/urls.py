@@ -26,10 +26,11 @@ from django.urls import include, path
 
 from .login import login
 from .Index import index
+from .top_type import views as top_type
 from django.contrib import admin
 
-knowledge_patterns = [
-    path('go_register', login.go_register),  # 跳转注册页
+top_type_patterns = [
+    path('create_top_type', top_type.create_top_type),  # 跳转注册页
 ]
 
 urlpatterns = [
@@ -38,5 +39,5 @@ urlpatterns = [
     path('login', login.do_login),  # 登陆接口
     path('register', login.register),  # 注册接口
     path('go_register', login.go_register),  # 跳转注册页
-    path('credit/', include(knowledge_patterns)),
+    path('top/',include(top_type_patterns))
 ]

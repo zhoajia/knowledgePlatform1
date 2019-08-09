@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'knowledgePlatform.User.apps.UserConfig',
+    'knowledgePlatform.top_type',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,7 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'knowledgePlatform.middleware.loginFilter.LoginFilter',
+    #'knowledgePlatform.middleware.loginFilter.LoginFilter',
 ]
 
 ROOT_URLCONF = 'knowledgePlatform.urls'  # url配置的根路径
