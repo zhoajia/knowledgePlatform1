@@ -31,6 +31,7 @@ from django.contrib import admin
 
 top_type_patterns = [
     path('create_top_type', top_type.create_top_type),  # 跳转注册页
+    path('update_top_type', top_type.update_top_type),  # 跳转注册页
 ]
 
 urlpatterns = [
