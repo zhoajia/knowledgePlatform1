@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from knowledgePlatform.top_type.models import TopType
 
 
+# 创建顶级分类
 @csrf_exempt
 def create_top_type(request):
     flag = top_type_service.creat_type(request.POST['top_type_name'])
@@ -19,6 +20,7 @@ def create_top_type(request):
         return response
 
 
+# 修改分类信息
 @csrf_exempt
 def update_top_type(request):
     top_type_id = request.POST['top_type_id']
@@ -35,3 +37,15 @@ def update_top_type(request):
         context['code'] = '1'
         response = JsonResponse(context)
         return response
+
+
+# 查询分类信息
+@csrf_exempt
+def findall_top_type(request):
+    _top_type_all = top_type_service.findall_top_type();
+    context = dict()
+    context['msg'] = '查询成功'
+    context['code'] = '1'
+    context['data'] = _top_type_all
+    response = JsonResponse(context)
+    return response

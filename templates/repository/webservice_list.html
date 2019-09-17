@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>接口列表</title>
+    <link href="https://cdn.bootcss.com/element-ui/2.11.1/theme-chalk/index.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0/axios.js"></script>
+    <script src="https://cdn.bootcss.com/element-ui/2.11.1/index.js"></script>
+    <script src="/static/js/common.js"></script>
+</head>
+<body>
+<el-container id="app">
+    <el-aside width="30%">
+        <el-button type="primary" @click="openCreate">创建新接口</el-button>
+        <template>
+            <el-table :data="info"  @cell-click="getDate" stripe :show-header="false">
+                <el-table-column
+                        prop="webservice_name"
+                        label="名称">
+                </el-table-column>
+                <el-table-column label="操作" width="80px">
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="success" >修改</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </template>
+    </el-aside>
+    <el-main>
+        <el-form ref="forms" :model="form" label-width="80px">
+            <el-input v-model="form.id" style="display: none"></el-input>
+            <el-form-item label="接口名称">
+                <el-input v-model="form.webservice_name" :readonly="read ? false : 'readonly'"></el-input>
+            </el-form-item>
+            <el-form-item label="接口描述">
+                <el-input type="textarea" v-model="form.webservice_desc" :readonly="read ? false : 'readonly'" :autosize="{ minRows: 2, maxRows: 40}"></el-input>
+            </el-form-item>
+            <el-form-item label="接口正文">
+                <el-input type="textarea" v-model="form.webservice_html" :readonly="read ? false : 'readonly'" :autosize="{ minRows: 2, maxRows: 40}"></el-input>
+            </el-form-item>
+            <el-form-item v-if="create">
+                <el-button type="primary" @click="onSubmit">立即创建</el-button>
+                <el-button @click="resetForm('forms')">重置</el-button>
+            </el-form-item>
+            <el-form-item v-if="update">
+                <el-button type="primary" @click="onUpdate">保存</el-button>
+                <el-button @click="cancel">删除</el-button>
+            </el-form-item>
+        </el-form>
+    </el-main>
+</el-container>
+</body>
+<script>
+    // 获取get url 后面的参数
+    const repository_id = getQueryString("repository_id")
+
+    let app = new Vue({
+        el: '#app',
+        delimiters: ['{[', ']}'],
+        data: {
+            info: null,
+            form: {
+                id:"",
+                webservice_name:"",
+                webservice_desc:"",
+                webservice_html:"",
+            },
+            read : false,
+            create: false,
+            update : false,
+            seen: false
+        },
+        mounted() {
+            let datas = new FormData();
+            datas.append('repository_id',repository_id);
+            axios.post('/webservice/webservice_list',datas)
+                .then(response => {
+                    if (response.data.code == 1) {
+                        this.info = response.data.data
+                    }
+                })
+                .catch(function (error) {
+                    alert('error')
+                });
+        },
+        methods: {
+            onSubmit:function(){
+                // 创建webservice
+                let datas = new FormData();
+                datas.append('webservice_name',this.form.webservice_name);
+                datas.append('webservice_desc',this.form.webservice_desc);
+                datas.append('webservice_html',this.form.webservice_html);
+                datas.append('parent',repository_id);
+                axios.post('/webservice/webservice_create', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                           window.location.reload()
+                        }
+                        alert(response.data.msg)
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            },
+            getDate(row, column, cell,event){
+                if(cell.getAttribute("class").trim() != "el-table_1_column_1"){
+                    this.openUpdate(1,row)
+                }else{
+                    let datas = new FormData();
+                    datas.append('webservice_id',row.id);
+                    axios.post('/webservice/webservice_info',datas)
+                        .then(response => {
+                            if (response.data.code == 1) {
+                                this.form = response.data.data
+                                this.read = false
+                                this.create = false
+                                this.update = false
+                            }
+                        })
+                        .catch(function (error) {
+                            alert('error')
+                        });
+                }
+            },
+            openCreate(){
+                this.form = {
+                    id:"",
+                    webservice_name:"",
+                    webservice_desc:"",
+                    webservice_html:"",
+                }
+                this.read = true
+                this.create = true
+                this.update = false
+            },
+            resetForm(formName) {
+                this.form = {
+                    id:"",
+                    webservice_name: "",
+                    webservice_desc: "",
+                    webservice_html: "",
+                }
+            },
+            openUpdate(index,obj){
+                let datas = new FormData();
+                datas.append('webservice_id', obj.id);
+                axios.post('/webservice/webservice_info', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.form = response.data.data
+                            this.read = true
+                            this.create = false
+                            this.update = true
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            },
+            onUpdate(){
+                let datas = new FormData();
+                datas.append('webservice_name',this.form.webservice_name);
+                datas.append('webservice_desc',this.form.webservice_desc);
+                datas.append('webservice_html',this.form.webservice_html);
+                datas.append('is_active',1);
+                datas.append('id',this.form.id);
+                axios.post('/webservice/webservice_update', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.read = true
+                            this.create = false
+                            this.update = true
+                        }
+                        alert(response.data.msg)
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            },
+            cancel(){
+                let datas = new FormData();
+                datas.append('id', this.form.id);
+                datas.append('webservice_name',this.form.webservice_name);
+                datas.append('webservice_desc',this.form.webservice_desc);
+                datas.append('webservice_html',this.form.webservice_html);
+                datas.append('is_active', 0);
+                datas.append('id',this.form.id);
+                axios.post('/webservice/webservice_update', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.read = true
+                            this.create = false
+                            this.update = true
+                            alert(response.data.msg)
+                            window.location.reload()
+                        }else{
+                             alert(response.data.msg)
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            }
+        }
+    })
+</script>
+</html>

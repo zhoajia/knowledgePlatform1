@@ -33,12 +33,16 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'knowledgePlatform.User.apps.UserConfig',
     'knowledgePlatform.top_type',
+    'knowledgePlatform.sub_type',
+    'knowledgePlatform.repository',
+    'knowledgePlatform.webservice',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     #'knowledgePlatform.middleware.loginFilter.LoginFilter',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'knowledgePlatform.urls'  # url配置的根路径
@@ -82,8 +87,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'knowledge',
         'USER': 'root',
-        'PASSWORD': 'Jia@87908502',
-        'HOST': '47.101.55.220',
+        #'PASSWORD': 'Jia@87908502',
+        'PASSWORD': 'jia@87908502',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }
@@ -119,10 +125,41 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR,'static')
+]
+
+# 跨域增加忽略
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
+#CORS_ORIGIN_WHITELIST = ('*')
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'VIEW',
+)
+CORS_ALLOW_HEADERS = (
+    'XMLHttpRequest',
+    'X_FILENAME',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+)
+#部署到云服务上必备
+ALLOWED_HOSTS = ['*']

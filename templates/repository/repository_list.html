@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>webservice仓库</title>
+    <link href="https://cdn.bootcss.com/element-ui/2.11.1/theme-chalk/index.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0/axios.js"></script>
+    <script src="https://cdn.bootcss.com/element-ui/2.11.1/index.js"></script>
+
+    <style>
+        .mg-l-10{
+            margin-left: 10px;
+        }
+
+        .grid-content {
+            min-width: 250px;
+            border-radius: 4px;
+            min-height: 36px;
+        }
+
+        .bg-blue{
+            background-color: #5baeff;
+        }
+
+        .dialog-border{
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+            border: 1px solid #eee;
+        }
+    </style>
+
+</head>
+<body>
+<el-container id="app">
+    <el-header style="height: 30px">
+        <el-breadcrumb separator="/">
+            <el-breadcrumb-item>信息化管理</el-breadcrumb-item>
+            <el-breadcrumb-item><a href="/">仓库列表</a></el-breadcrumb-item>
+        </el-breadcrumb>
+    </el-header>
+    <el-main style="padding:0 0 0 0 ">
+        <template>
+            <!-- @row-click="explanSub"-->
+            <el-table ref="multipleTable" :data="info" row-key="id" :expand-row-keys="explanKeys"   border stripe style="width: 100%" :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+                <el-table-column
+                        prop="repository_name"
+                        label="名称">
+                </el-table-column>
+                <el-table-column
+                        prop="create_date"
+                        label="创建日期">
+                </el-table-column>
+                <el-table-column
+                        prop="update_date"
+                        label="修改日期">
+                </el-table-column>
+                <el-table-column
+                        prop="is_active"
+                        label="是否生效">
+                </el-table-column>
+                <el-table-column label="操作">
+                    <template slot-scope="scope">
+                        <el-button v-if="scope.row.flag=='1'" size="mini" @click="open(scope.$index, scope.row)">添加</el-button>
+                        <el-button v-else size="mini" type="success" @click="handleQuer(scope.$index, scope.row)">查看</el-button>
+                        <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </template>
+    </el-main>
+
+    <el-dialog title="接口列表" top="2vh" :fullscreen="false" class="dialog-border" :append-to-body="true" :visible.sync="dialogVisible" width="98%">
+        <span style="padding: 0 0 0 0">
+            <iframe frameborder="0" v-bind:style="{height:asideh*0.90+'px'}" width="100%" height="100%"
+                                scrolling="yes" v-bind:src="url">
+            </iframe>
+        </span>
+        <span slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="dialogVisible = false">关闭</el-button>
+        </span>
+    </el-dialog>
+</el-container>
+
+
+</body>
+<script>
+    let app = new Vue({
+        el: '#app',
+        delimiters: ['{[', ']}'],
+        data:{
+            info:[],
+            dialogVisible: false,
+            asideh: (window.innerHeight * 0.896),
+            url:"",
+            explanKeys: []
+        },
+        mounted() {
+            axios.post('/repository/repository_list')
+                .then(response => {
+                    if (response.data.code == 1) {
+                        this.info = response.data.data
+                    }
+                })
+                .catch(function (error) {
+                    alert('error')
+                });
+        },
+        methods:{
+            handleQuer(index,ob){
+                this.dialogVisible = true;
+                this.url = "/webservice/go_webservice?repository_id="+ob.id
+            },
+            explanSub(row, column, event){
+                this.$refs.multipleTable.toggleRowExpansion(row)
+            },
+            open(index,row) {
+                this.$prompt('请输入名称', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                }).then(({value}) => {
+                    let datas = new FormData();
+                    datas.append('parent_id', row.id);
+                    datas.append('repository_type', 1);
+                    datas.append('is_active', 1);
+                    datas.append('level', 1);
+                    datas.append('repository_name', value);
+                    axios.post('/repository/repository_create',datas)
+                        .then(response => {
+                            if (response.data.code == 1) {
+                                this.$message({
+                                    type: 'success',
+                                    message: '添加成功'
+                                });
+                                window.location.reload()
+                            }else{
+                                this.$message({
+                                    type: 'error',
+                                    message: '添加失败'
+                                });
+                            }
+                        })
+                        .catch(function (error) {
+                            alert('error')
+                        });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '取消输入'
+                    });
+                });
+            }
+        }
+    })
+</script>
+</html>
