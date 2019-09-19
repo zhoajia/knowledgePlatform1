@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'knowledgePlatform.sub_type',
     'knowledgePlatform.repository',
     'knowledgePlatform.webservice',
+    'knowledgePlatform.log_info',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
