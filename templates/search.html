@@ -22,15 +22,33 @@
     <el-input placeholder="请输入要搜索的内容" v-model="input" class="inputs">
         <el-button slot="append" icon="el-icon-search"></el-button>
     </el-input>
+    <div style="margin-top: 1%;">
+        <div v-for="subItem in logList1" style="margin:0 auto; width:30%;background-color: #F2F6FC;">
+            <span>{[ subItem.fields.text ]}</span>
+            <el-divider></el-divider>
+        </div>
+    </div>
 </div>
 </body>
 <script>
-    var app = new Vue({
+    let app1 = new Vue({
         el: '#app',
         delimiters: ['{[', ']}'],
         data: {
-            input: ''
-        }
+            input: '',
+            logList1:[]
+        },
+        mounted() {
+            axios.post('/log_info/log_list')
+                .then(response => {
+                    if (response.data.code == 1) {
+                        this.logList1 = response.data.data
+                    }
+                })
+                .catch(function (error) {
+                    alert('error')
+                });
+        },
     })
 </script>
 </html>

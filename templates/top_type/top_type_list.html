@@ -21,7 +21,7 @@
         },
          mounted () {
             axios
-              .post('http://127.0.0.1:8080/top/create_top_type',{
+              .post('/top/create_top_type',{
                 top_type_name: 'Fred',        // 参数 top_type_name
               })
               .then(response => (this.info = response))

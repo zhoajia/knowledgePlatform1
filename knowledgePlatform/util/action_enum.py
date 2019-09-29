@@ -9,3 +9,4 @@ class ActionEnum(Enum):
     DELETE = "删除"
     EXECUTE = "执行"
     CANCEL = "取消"
+    SAME_ADD = "存在重复名称"

@@ -153,7 +153,7 @@
             activeName: 'welcome'
         },
         mounted() {
-            axios.post('http://127.0.0.1:8080/top/top_type_list')
+            axios.post('/top/top_type_list')
                 .then(response => {
                     if (response.data.code == 1) {
                         this.info = response.data.data

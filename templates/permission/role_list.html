@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.bootcss.com/element-ui/2.11.1/theme-chalk/index.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0/axios.js"></script>
+    <script src="https://cdn.bootcss.com/element-ui/2.11.1/index.js"></script>
+</head>
+<body>
+<el-container id="app">
+    <el-header style="height: 30px">
+        <el-row>
+            <el-col :span="20">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>角色管理</el-breadcrumb-item>
+                    <el-breadcrumb-item>角色列表</el-breadcrumb-item>
+                </el-breadcrumb>
+            </el-col>
+            <el-col :span="4">
+                <el-button size="mini" icon="el-icon-plus" type="primary" @click="dialogVisible=true">添加</el-button>
+            </el-col>
+        </el-row>
+    </el-header>
+    <el-main style="padding:0 0 0 0 ">
+        <template>
+            <!-- @row-click="explanSub"-->
+            <el-table ref="multipleTable" :data="info" row-key="id" border stripe style="width: 100%">
+                <el-table-column
+                        prop="role_name"
+                        label="角色名称">
+                </el-table-column>
+                <el-table-column
+                        prop="desc"
+                        label="备注">
+                </el-table-column>
+                <el-table-column
+                        prop="is_active"
+                        label="是否生效">
+                    <template scope="scope">
+                        <span v-if="scope.row.is_active==1">生效</span>
+                        <span v-else>失效</span>
+                    </template>
+
+                </el-table-column>
+                <el-table-column label="操作">
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="success" @click="handleQuer(scope.$index, scope.row)">修改
+                        </el-button>
+                        <el-button size="mini" type="primary" @click="getAllUser(scope.$index, scope.row)">人员调整
+                        </el-button>
+                        <el-button size="mini" type="danger" @click="getAllPermission(scope.$index, scope.row)">权限调整
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </template>
+        <template>
+            <el-pagination @current-change="handleCurrentChange"
+                           :current-page.sync="currentPage" :page-size="10" background
+                           layout="prev, pager, next, jumper" :total="total" style="float: right">
+            </el-pagination>
+        </template>
+
+    </el-main>
+
+    <el-dialog title="添加" :visible.sync="dialogVisible" width="30%">
+        <el-form>
+            <el-form-item label="权限名称" :label-width="formLabelWidth">
+                <el-input v-model="form.role_name" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="备注" :label-width="formLabelWidth">
+                <el-input v-model="form.desc" autocomplete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="open()">确 定</el-button>
+        </div>
+    </el-dialog>
+
+    <!-- 人员设置 -->
+    <el-dialog title="人员调整" :visible.sync="setUserDialogVisible" width="50%">
+        <template>
+            <div style="text-align: center">
+                <el-transfer style="text-align: left; display: inline-block" v-model="value" filterable
+                             :titles="['未选', '已选']"
+                             :button-texts="['到左边', '到右边']"
+                             :data="userList">
+                </el-transfer>
+            </div>
+        </template>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="setUserDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="setUser()">确 定</el-button>
+        </div>
+    </el-dialog>
+
+    <!-- 权限设置树 -->
+    <el-dialog title="权限调整" :visible.sync="setPermissionDialogVisible" width="50%">
+        <el-tree :data="tree_data" show-checkbox :default-checked-keys="checkedPermissions" node-key="id" ref="tree"
+                 highlight-current :props="defaultProps">
+        </el-tree>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="setPermissionDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="setPermission()">确 定</el-button>
+        </div>
+    </el-dialog>
+
+</el-container>
+</body>
+<script>
+    let app = new Vue({
+        el: '#app',
+        delimiters: ['{[', ']}'],
+        data: {
+            info: [], // 角色
+            userList:[], // 用户
+            value : [], // 已选用户列表
+            tree_data : [], // 权限树
+            checkedPermissions : [], // 已选权限
+            dialogVisible: false, // 添加dialog
+            setUserDialogVisible: false,  // 设置人员dialog
+            setPermissionDialogVisible : false, // 设置权限的dialog
+            form: {role_name: "", desc: ""},
+            asideh: (window.innerHeight * 0.896),
+            formLabelWidth: '120px',
+            currentPage: 1, // 页码
+            total: 0, // 总数量
+            defaultProps: {  // 权限树的标签
+                children: 'children',
+                label: 'label'
+            }
+        },
+        mounted() {
+            let datas = new FormData();
+            datas.append('page_number', this.currentPage);
+            // 查询所有的角色
+            axios.post('/permission/get_role_list', datas)
+                .then(response => {
+                    if (response.data.code == 1) {
+                        this.info = response.data.data
+                        this.total = response.data.total
+                    }
+                })
+                .catch(function (error) {
+                    alert('error')
+                });
+        },
+        methods: {
+            handleQuer(index, ob) {
+                this.dialogVisible = true;
+            },
+            open() {
+                let datas = new FormData();
+                let role_name = this.form.role_name;
+                let desc = this.form.desc;
+                if (role_name == '' || desc == '') {
+                    this.$message.error('错了哦，请输入完整信息');
+                    return;
+                }
+                datas.append('role_name', role_name);
+                datas.append('desc', desc);
+                axios.post('/permission/create_role', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.$message({
+                                type: 'success',
+                                message: '添加成功'
+                            });
+                            window.location.reload()
+                        } else {
+                            this.$message({
+                                type: 'error',
+                                message: '添加失败'
+                            });
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            },
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                this.currentPage = val
+                let datas = new FormData();
+                datas.append('page_number', this.currentPage);
+                // 查询所有的权限
+                axios.post('/permission/get_role_list', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.info = response.data.data
+                            this.total = response.data.total
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            },
+            async getAllUser(obj, row) {
+                // 查询所有的用户
+                let response =await axios.post('/user/get_user_list')
+                if (response.data.code == 1) {
+                    let data = response.data.data;
+                    let user_list = new Array();
+                    for (let i in data) {
+                        user_list.push({
+                            key: data[i].id,
+                            label: data[i].username,
+                            disabled: false
+                        })
+                    }
+                    this.userList = user_list;
+                    // 查询此角色已选的用户
+                    let datas = new FormData();
+                    datas.append('role_id',row.id)
+                    axios.post('/permission/get_user_by_role_id', datas)
+                        .then(response => {
+                            if (response.data.code == 1) {
+                                let has_people = new Array();
+                                for (let k in response.data.data){
+                                    has_people.push(response.data.data[k].id)
+                                }
+                                this.value = has_people
+                            }
+                        })
+                        .catch(function (error) {
+                            alert(error)
+                        });
+                    this.setUserDialogVisible = true
+                }
+            },
+            getAllPermission(obj, row){
+                let data0 = new FormData();
+                data0.append('role_id', row.id);
+                // 查询已选取的权限
+                axios.post('/permission/get_permissions_by_role_id', data0)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.checkedPermissions = response.data.data
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+
+                // 分页查询所有权限
+                axios.post('/permission/load_permission_tree')
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.tree_data =  response.data.data
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+                this.setPermissionDialogVisible = true
+            }
+        }
+    })
+</script>
+</html>

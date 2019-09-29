@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>权限列表</title>
+    <link href="https://cdn.bootcss.com/element-ui/2.11.1/theme-chalk/index.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.19.0/axios.js"></script>
+    <script src="https://cdn.bootcss.com/element-ui/2.11.1/index.js"></script>
+</head>
+<body>
+<el-container id="app">
+    <el-header style="height: 30px">
+        <el-row>
+            <el-col :span="20">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>系统管理</el-breadcrumb-item>
+                    <el-breadcrumb-item>权限列表</el-breadcrumb-item>
+                </el-breadcrumb>
+            </el-col>
+            <el-col :span="4">
+                <el-button size="mini" icon="el-icon-plus" type="primary" @click="dialogVisible=true">添加</el-button>
+            </el-col>
+        </el-row>
+    </el-header>
+    <el-main style="padding:0 0 0 0 ">
+        <template>
+            <!-- @row-click="explanSub"-->
+            <el-table ref="multipleTable" :data="info" row-key="id" border stripe style="width: 100%">
+                <el-table-column
+                        prop="permissions_name"
+                        label="权限名称">
+                </el-table-column>
+                <el-table-column
+                        prop="sub_type.type_name"
+                        label="功能模块">
+                </el-table-column>
+                <el-table-column
+                        prop="is_active"
+                        label="是否生效">
+                    <template scope="scope">
+                        <span v-if="scope.row.is_active==1">生效</span>
+                        <span v-else>失效</span>
+                    </template>
+
+                </el-table-column>
+                <el-table-column label="操作">
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="success" @click="handleQuer(scope.$index, scope.row)">修改
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </template>
+        <template>
+            <el-pagination @current-change="handleCurrentChange"
+                           :current-page.sync="currentPage" :page-size="10" background
+                           layout="prev, pager, next, jumper" :total="total" style="float: right">
+            </el-pagination>
+        </template>
+
+    </el-main>
+
+    <el-dialog title="添加" :visible.sync="dialogVisible" width="30%">
+        <el-form>
+            <el-form-item label="功能模块" :label-width="formLabelWidth">
+                <el-select v-model="form.sub_type_id" placeholder="请选择功能模块">
+                    <el-option v-for="item in sub_type" :label="item.type_name" :value="item.id"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="权限名称" :label-width="formLabelWidth">
+                <el-input v-model="form.permissions_name" autocomplete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="open()">确 定</el-button>
+        </div>
+    </el-dialog>
+
+
+</el-container>
+</body>
+<script>
+    let app = new Vue({
+        el: '#app',
+        delimiters: ['{[', ']}'],
+        data: {
+            info: [],
+            asideh: (window.innerHeight * 0.896),
+            dialogVisible: false,
+            form: {permissions_name: "", sub_type_id: ""},
+            formLabelWidth: '120px',
+            sub_type: [],
+            currentPage: 1,
+            total: 0
+        },
+        mounted() {
+            let datas = new FormData();
+            datas.append('page_number', this.currentPage);
+            // 查询所有的权限
+            axios.post('/permission/get_permission_list', datas)
+                .then(response => {
+                    if (response.data.code == 1) {
+                        this.info = response.data.data
+                        this.total = response.data.total
+                    }
+                })
+                .catch(function (error) {
+                    alert('error')
+                });
+            // 查询所有的功能模块
+            let data0 = new FormData();
+            data0.append('active', 1);
+            axios.post('/sub/sub_type_list', data0)
+                .then(response => {
+                    if (response.data.code == 1) {
+                        this.sub_type = response.data.data
+                    }
+                })
+                .catch(function (error) {
+                    alert('error')
+                });
+        },
+        methods: {
+            handleQuer(index, ob) {
+                this.dialogVisible = true;
+            },
+            open() {
+                let datas = new FormData();
+                let per_name = this.form.permissions_name;
+                let sub_id = this.form.sub_type_id;
+                if (per_name == '' || sub_id == '') {
+                    this.$message.error('错了哦，请输入完整信息');
+                    return;
+                }
+                datas.append('permissions_name', this.form.permissions_name);
+                datas.append('sub_type_id', this.form.sub_type_id);
+                axios.post('/permission/permission_create', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.$message({
+                                type: 'success',
+                                message: '添加成功'
+                            });
+                            window.location.reload()
+                        } else {
+                            this.$message({
+                                type: 'error',
+                                message: '添加失败'
+                            });
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            },
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+                this.currentPage = val
+                let datas = new FormData();
+                datas.append('page_number', this.currentPage);
+                // 查询所有的权限
+                axios.post('/permission/get_permission_list', datas)
+                    .then(response => {
+                        if (response.data.code == 1) {
+                            this.info = response.data.data
+                            this.total = response.data.total
+                        }
+                    })
+                    .catch(function (error) {
+                        alert('error')
+                    });
+            }
+
+        }
+    })
+</script>
+</html>
